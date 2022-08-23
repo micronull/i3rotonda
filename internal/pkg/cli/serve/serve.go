@@ -2,16 +2,21 @@ package serve
 
 import (
 	"flag"
+	"io"
+	"log"
+	"net"
 	"strings"
+	"sync"
 
-	"github.com/go-pkgz/lgr"
 	"go.i3wm.org/i3"
+
+	"github.com/micronull/i3rotonda/internal/pkg/socket"
 )
 
-func NewCommand(logger *lgr.Logger) *Command {
+func NewCommand() *Command {
 	c := &Command{
-		fs:  flag.NewFlagSet("serve", flag.ContinueOnError),
-		log: logger,
+		fs: flag.NewFlagSet("serve", flag.ContinueOnError),
+		m:  &sync.RWMutex{},
 	}
 
 	c.fs.StringVar(&c.exclude, "e", "", "exclude workspaces from observation, names or numbers separated by commas")
@@ -20,11 +25,12 @@ func NewCommand(logger *lgr.Logger) *Command {
 }
 
 type Command struct {
-	fs  *flag.FlagSet
-	log *lgr.Logger
+	fs *flag.FlagSet
 
 	exclude string
 	packet  [10]*i3.Node
+
+	m *sync.RWMutex
 }
 
 func (c *Command) Name() string {
@@ -36,8 +42,9 @@ func (c *Command) Init(args []string) error {
 }
 
 func (c *Command) Run() error {
-	c.log.Logf("INFO observer is running")
+	log.Println("INFO: observer is running")
 
+	go c.runServer()
 	go c.runListenWorkspace()
 
 	ch := make(chan struct{})
@@ -46,6 +53,28 @@ func (c *Command) Run() error {
 	<-ch
 
 	return nil
+}
+
+func (c *Command) runServer() {
+	addr := socket.Run(func(c net.Conn) {
+		var d []byte
+
+		for {
+			_, err := c.Read(d)
+
+			if err == io.EOF {
+				break
+			}
+
+			if err != nil {
+				log.Fatal("ERROR: read socket: " + err.Error())
+			}
+		}
+
+		log.Printf("DEBUG: read: %v", d)
+	})
+
+	log.Printf("INFO: listing: %s\n", addr)
 }
 
 func (c *Command) runListenWorkspace() {
@@ -62,11 +91,15 @@ func (c *Command) runListenWorkspace() {
 			continue
 		}
 
+		c.m.Lock()
+
 		for i := cap(c.packet) - 1; i > 0; i-- {
 			c.packet[i] = c.packet[i-1]
 		}
 
 		c.packet[0] = &ws
+
+		c.m.Unlock()
 	}
 }
 
