@@ -6,10 +6,11 @@ import (
 	"os"
 
 	"github.com/micronull/i3rotonda/internal/pkg/cli/serve"
+	"github.com/micronull/i3rotonda/internal/pkg/cli/switcher"
 )
 
 type runner interface {
-	Init([]string) error
+	Init(args []string) error
 	Run() error
 	Name() string
 }
@@ -36,6 +37,7 @@ func run(args []string) error {
 
 	cmds := []runner{
 		serve.NewCommand(),
+		switcher.NewCommand(),
 	}
 
 	subcommand := args[0]

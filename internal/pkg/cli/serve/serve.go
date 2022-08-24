@@ -2,15 +2,17 @@ package serve
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net"
 	"strings"
 	"sync"
 
-	"go.i3wm.org/i3"
-
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
+	"github.com/micronull/i3rotonda/internal/pkg/types"
+
+	"go.i3wm.org/i3/v4"
 )
 
 func NewCommand() *Command {
@@ -56,11 +58,11 @@ func (c *Command) Run() error {
 }
 
 func (c *Command) runServer() {
-	addr := socket.Run(func(c net.Conn) {
-		var d []byte
+	addr := socket.Run(func(conn net.Conn) {
+		d := make([]byte, 1)
 
 		for {
-			_, err := c.Read(d)
+			_, err := conn.Read(d)
 
 			if err == io.EOF {
 				break
@@ -71,15 +73,89 @@ func (c *Command) runServer() {
 			}
 		}
 
-		log.Printf("DEBUG: read: %v", d)
+		_ = conn.Close()
+
+		c.action(types.Action(d[0]))
 	})
 
 	log.Printf("INFO: listing: %s\n", addr)
 }
 
+func (c *Command) action(a types.Action) {
+	if a == types.ACTION_NONE {
+		return
+	}
+
+	ws := getCurrentWorkspace()
+	if ws.Focused && isExclude(ws.Name, strings.Split(c.exclude, ",")) {
+		i3CmdSwitch(c.packet[0].Name)
+
+		return
+	}
+
+	if a == types.ACTION_NEXT {
+		if c.packet[0] == nil {
+			return
+		}
+
+		var first *i3.Node
+		for i := 0; i < len(c.packet); i++ {
+			if i == 0 {
+				first = c.packet[i]
+			}
+
+			if i+1 < len(c.packet) {
+				c.packet[i] = c.packet[i+1]
+			}
+
+			if len(c.packet) == i+1 || c.packet[i] == nil {
+				c.packet[i] = first
+
+				break
+			}
+		}
+
+		debugPacket(c.packet[:])
+		i3CmdSwitch(c.packet[0].Name)
+	}
+}
+
+func i3CmdSwitch(wsName string) {
+	cmd := fmt.Sprintf("workspace %s", wsName)
+
+	log.Printf("INFO: cmd next to: %s", cmd)
+
+	if _, err := i3.RunCommand(cmd); err != nil {
+		log.Printf("ERROR: running command: %s", err.Error())
+	}
+}
+
+func getCurrentWorkspace() i3.Workspace {
+	ws, _ := i3.GetWorkspaces()
+
+	for _, w := range ws {
+		if w.Focused {
+			return w
+		}
+	}
+
+	return i3.Workspace{}
+}
+
+func debugPacket(packet []*i3.Node) {
+	var v []string
+
+	for _, node := range packet {
+		if node != nil {
+			v = append(v, node.Name)
+		}
+	}
+
+	log.Printf("DEBUG: %v", v)
+}
+
 func (c *Command) runListenWorkspace() {
 	e := strings.Split(c.exclude, ",")
-
 	recv := i3.Subscribe(i3.WorkspaceEventType)
 
 	for recv.Next() {
@@ -100,6 +176,8 @@ func (c *Command) runListenWorkspace() {
 		c.packet[0] = &ws
 
 		c.m.Unlock()
+
+		log.Printf("DEBUG: added packet: %s", ws.Name)
 	}
 }
 
@@ -108,19 +186,19 @@ func check(ev *i3.WorkspaceEvent, e []string) bool {
 		return false
 	}
 
-	var isExclude bool
-
-	for _, s := range e {
-		if s == ev.Current.Name {
-			isExclude = true
-
-			break
-		}
-	}
-
-	if isExclude {
+	if isExclude(ev.Current.Name, e) {
 		return false
 	}
 
 	return true
+}
+
+func isExclude(wsName string, e []string) bool {
+	for _, s := range e {
+		if s == wsName {
+			return true
+		}
+	}
+
+	return false
 }

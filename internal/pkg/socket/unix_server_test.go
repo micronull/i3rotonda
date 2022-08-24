@@ -11,15 +11,17 @@ import (
 )
 
 func TestRun(t *testing.T) {
+	t.Parallel()
+
 	ch := make(chan bool)
 	defer close(ch)
 
-	addr := socket.Run(func(conn *net.Conn) {
+	_ = socket.Run(func(conn net.Conn) {
 		ch <- true
 	})
 
 	go func() {
-		_, err := net.Dial("unix", addr.String())
+		_, err := socket.Connect()
 		assert.NoError(t, err)
 	}()
 
