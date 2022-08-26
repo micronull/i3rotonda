@@ -3,6 +3,7 @@ package switcher
 import (
 	"flag"
 	"net"
+	"time"
 
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"
@@ -11,15 +12,26 @@ import (
 type Command struct {
 	fs *flag.FlagSet
 	c  net.Conn
+	a  string
+	d  time.Duration
 }
 
 func NewCommand() *Command {
-	return &Command{
-		fs: flag.NewFlagSet("switcher", flag.ContinueOnError),
+	c := &Command{
+		fs: flag.NewFlagSet("switch", flag.ContinueOnError),
 	}
+
+	c.fs.StringVar(&c.a, "a", "next", "switch direction, next or prev")
+	c.fs.DurationVar(&c.d, "d", time.Millisecond * 500, "time after which a switch can be considered to have completed")
+
+	return c
 }
 
-func (c *Command) Init(_ []string) (err error) {
+func (c *Command) Init(args []string) (err error) {
+	if err = c.fs.Parse(args); err != nil {
+		return err
+	}
+
 	c.c, err = socket.Connect()
 
 	return

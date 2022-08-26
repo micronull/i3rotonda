@@ -3,10 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/micronull/i3rotonda/internal/pkg/cli/serve"
 	"github.com/micronull/i3rotonda/internal/pkg/cli/switcher"
+	"github.com/micronull/i3rotonda/internal/pkg/wm/i3wm"
 )
 
 type runner interface {
@@ -32,11 +34,14 @@ func main() {
 func run(args []string) error {
 	if len(args) < 1 || args[0] == "-h" || args[0] == "--help" {
 		return errors.New("usage: <command> [<args>]\n" +
-			"   serve - run observer for switcher by history")
+			"   serve  - run observer for switcher by history\n" +
+		  "   switch - switch the current workspace")
 	}
 
+	lgr := log.New(os.Stdout, "", log.LstdFlags)
+
 	cmds := []runner{
-		serve.NewCommand(),
+		serve.NewCommand(i3wm.New(lgr)),
 		switcher.NewCommand(),
 	}
 
