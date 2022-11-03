@@ -1,7 +1,9 @@
 package switcher
 
 import (
+	"errors"
 	"flag"
+	"log"
 	"net"
 	"time"
 
@@ -22,7 +24,7 @@ func NewCommand() *Command {
 	}
 
 	c.fs.StringVar(&c.a, "a", "next", "switch direction, next or prev")
-	c.fs.DurationVar(&c.d, "d", time.Millisecond * 500, "time after which a switch can be considered to have completed")
+	c.fs.DurationVar(&c.d, "d", time.Millisecond*500, "time after which a switch can be considered to have completed")
 
 	return c
 }
@@ -37,12 +39,25 @@ func (c *Command) Init(args []string) (err error) {
 	return
 }
 
-func (c *Command) Run() (err error) {
-	_, err = c.c.Write([]byte{byte(types.ACTION_NEXT)})
+func (c *Command) Run() error {
+	defer func() {
+		if err := c.c.Close(); err != nil {
+			log.Println("WARNING: couldn't close socket connected")
+		}
+	}()
 
-	_ = c.c.Close()
+	var err error
 
-	return
+	switch c.a {
+	case "next":
+		_, err = c.c.Write([]byte{byte(types.ACTION_NEXT)})
+	case "prev":
+		_, err = c.c.Write([]byte{byte(types.ACTION_PREV)})
+	default:
+		err = errors.New("wrong action")
+	}
+
+	return err
 }
 
 func (c *Command) Name() string {
