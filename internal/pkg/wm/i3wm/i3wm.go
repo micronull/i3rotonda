@@ -27,6 +27,10 @@ func (i *i3wm) log(msg string, v ...any) {
 }
 
 func (i *i3wm) Switch(target string) {
+	if target == "" {
+		return
+	}
+
 	cmd := fmt.Sprintf("workspace %s", target)
 
 	i.log("INFO: cmd next to: %s", cmd)

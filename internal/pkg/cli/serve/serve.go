@@ -34,7 +34,7 @@ type Command struct {
 	exclude string
 	d       time.Duration
 
-	packet [10]wm.Workspace
+	p [10]wm.Workspace
 
 	m *sync.RWMutex
 }
@@ -97,34 +97,34 @@ func (c *Command) action(a types.Action) {
 	}
 
 	if isExclude(ws.GetName(), strings.Split(c.exclude, ",")) {
-		c.wm.Switch(c.packet[0].GetName())
+		c.wm.Switch(c.p[0].GetName())
 
 		return
 	}
 
 	if a == types.ACTION_NEXT {
-		if c.packet[0] == nil {
+		if c.p[0] == nil {
 			return
 		}
 
 		var first wm.Workspace
-		for i := 0; i < len(c.packet); i++ {
+		for i := 0; i < len(c.p); i++ {
 			if i == 0 {
-				first = c.packet[i]
+				first = c.p[i]
 			}
 
-			if i+1 < len(c.packet) {
-				c.packet[i] = c.packet[i+1]
+			if i+1 < len(c.p) {
+				c.p[i] = c.p[i+1]
 			}
 
-			if len(c.packet) == i+1 || c.packet[i] == nil {
-				c.packet[i] = first
+			if len(c.p) == i+1 || c.p[i] == nil {
+				c.p[i] = first
 
 				break
 			}
 		}
 
-		c.wm.Switch(c.packet[0].GetName())
+		c.wm.Switch(c.p[0].GetName())
 	}
 }
 
@@ -132,21 +132,21 @@ func (c *Command) runListenWorkspace() {
 	e := strings.Split(c.exclude, ",")
 
 	for ws := range c.wm.OnChangeWorkspace() {
-		if isExclude(ws.GetName(), e) || c.packet[0] != nil && c.packet[0].GetName() == ws.GetName() {
+		if isExclude(ws.GetName(), e) || c.p[0] != nil && c.p[0].GetName() == ws.GetName() {
 			continue
 		}
 
 		c.m.Lock()
 
-		for i := cap(c.packet) - 1; i > 0; i-- {
-			c.packet[i] = c.packet[i-1]
+		for i := cap(c.p) - 1; i > 0; i-- {
+			c.p[i] = c.p[i-1]
 		}
 
-		c.packet[0] = ws
+		c.p[0] = ws
 
 		c.m.Unlock()
 
-		log.Printf("DEBUG: added packet: %s", ws.GetName())
+		log.Printf("DEBUG: added ws into poll %s", ws.GetName())
 	}
 }
 
