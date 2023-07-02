@@ -21,6 +21,10 @@ func (s *Switcher) Add(w wm.Workspace) {
 		return
 	}
 
+	if len(s.pool) >= s.counter+1 && s.pool[s.counter].GetName() == w.GetName() {
+		return
+	}
+
 	if len(s.pool) == cap(s.pool) {
 		for i := 0; i < len(s.pool); i++ {
 			n := i + 1
@@ -53,7 +57,7 @@ func (s *Switcher) Current() wm.Workspace {
 		return nil
 	}
 
-	return s.pool[len(s.pool)-1]
+	return s.pool[s.counter]
 }
 
 func (s *Switcher) Prev() wm.Workspace {

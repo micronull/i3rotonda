@@ -97,17 +97,18 @@ func TestSwitcher_Add_SwitchToPrev(t *testing.T) {
 	s.Add(wm("2"))
 	s.Add(wm("3"))
 
-	//get the previous.
+	// get the previous.
 	p := s.Prev()
+	assert.Equal(t, "2", p.GetName())
 
-	//switch
+	// switch.
 	s.Add(p)
 
 	assert.Equal(t, "2", s.Current().GetName())
+	assert.Equal(t, "1", s.Prev().GetName())
 	assert.Equal(t, "3", s.Prev().GetName())
 	assert.Equal(t, "2", s.Prev().GetName())
 	assert.Equal(t, "1", s.Prev().GetName())
-	assert.Equal(t, "2", s.Prev().GetName())
 }
 
 func TestSwitcher_Prev(t *testing.T) {
@@ -128,6 +129,30 @@ func TestSwitcher_Prev(t *testing.T) {
 	assert.Equal(t, "2", s.Prev().GetName())
 	assert.Equal(t, "1", s.Prev().GetName())
 	assert.Equal(t, "5", s.Prev().GetName())
+}
+
+func TestSwitcher_Prev_IgnoreInAdd(t *testing.T) {
+	t.Parallel()
+
+	const size = 10
+
+	s := switcher.NewSwitcher(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+
+	ws := s.Prev()
+	s.Add(ws)
+
+	assert.Equal(t, "2", s.Current().GetName())
+	assert.Equal(t, "2", ws.GetName())
+
+	ws = s.Prev()
+	s.Add(ws)
+
+	assert.Equal(t, "1", s.Current().GetName())
+	assert.Equal(t, "1", ws.GetName())
 }
 
 func TestSwitcher_Next(t *testing.T) {
