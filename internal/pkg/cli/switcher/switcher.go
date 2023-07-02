@@ -1,6 +1,6 @@
 package switcher
 
-//go:generate mockgen -source ./$GOFILE -destination ./mocks/$GOFILE -package mocks
+//go:generate mockgen -destination ./mocks/$GOFILE -package mocks io WriteCloser
 
 import (
 	"errors"
@@ -14,22 +14,17 @@ import (
 
 const commandName = "switch"
 
-type connect interface {
-	io.Closer
-	io.Writer
-}
-
 type Command struct {
 	fs     *flag.FlagSet
-	conn   connect
+	writer io.WriteCloser
 	action string
 	delay  time.Duration
 }
 
-func NewCommand(conn connect) *Command {
+func NewCommand(wr io.WriteCloser) *Command {
 	c := &Command{
-		conn: conn,
-		fs:   flag.NewFlagSet(commandName, flag.ContinueOnError),
+		writer: wr,
+		fs:     flag.NewFlagSet(commandName, flag.ContinueOnError),
 	}
 
 	c.fs.StringVar(&c.action, "a", "next", "switch direction, next or prev")
@@ -46,7 +41,7 @@ var errWrongAction = errors.New("wrong action")
 
 func (c *Command) Run() error {
 	defer func() {
-		if err := c.conn.Close(); err != nil {
+		if err := c.writer.Close(); err != nil {
 			log.Println("WARNING: couldn't close socket connected")
 		}
 	}()
@@ -55,9 +50,9 @@ func (c *Command) Run() error {
 
 	switch c.action {
 	case "next":
-		_, err = c.conn.Write([]byte{types.ActionNext})
+		_, err = c.writer.Write([]byte{types.ActionNext})
 	case "prev":
-		_, err = c.conn.Write([]byte{types.ActionPrev})
+		_, err = c.writer.Write([]byte{types.ActionPrev})
 	default:
 		err = errWrongAction
 	}

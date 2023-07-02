@@ -15,7 +15,7 @@ func TestCommand_Run(t *testing.T) {
 	t.Parallel()
 
 	mockCtrl := gomock.NewController(t)
-	connMock := mocks.NewMockconnect(mockCtrl)
+	connMock := mocks.NewMockWriteCloser(mockCtrl)
 
 	cmd := switcher.NewCommand(connMock)
 	err := cmd.Init([]string{"-a=prev"})

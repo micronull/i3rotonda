@@ -4,39 +4,27 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/micronull/i3rotonda/internal/pkg/wm"
 	"go.i3wm.org/i3/v4"
+	"golang.org/x/exp/slog"
+
+	"github.com/micronull/i3rotonda/internal/pkg/wm"
 )
 
-type i3wm struct {
+type I3wm struct {
 	lg *log.Logger
 }
 
-var _ wm.WorkspaceManager = &i3wm{}
+var _ wm.WorkspaceManager = &I3wm{}
 
-func New(lgr *log.Logger) *i3wm {
-	return &i3wm{lgr}
-}
-
-func (i *i3wm) log(msg string, v ...any) {
-	if i.lg == nil {
-		return
-	}
-
-	i.lg.Printf(msg, v...)
-}
-
-func (i *i3wm) Switch(target string) {
+func (i *I3wm) Switch(target string) {
 	if target == "" {
 		return
 	}
 
 	cmd := fmt.Sprintf("workspace %s", target)
 
-	i.log("INFO: cmd next to: %s", cmd)
-
 	if _, err := i3.RunCommand(cmd); err != nil {
-		i.log("ERROR: running command: %s", err.Error())
+		slog.Error("i3wm run command failed", "error", err.Error())
 	}
 }
 
@@ -48,7 +36,7 @@ func (w *ws) GetName() string {
 	return w.name
 }
 
-func (i *i3wm) GetCurrentWorkspace() wm.Workspace {
+func (i *I3wm) GetCurrentWorkspace() wm.Workspace {
 	wss, _ := i3.GetWorkspaces()
 
 	for _, w := range wss {
@@ -60,7 +48,7 @@ func (i *i3wm) GetCurrentWorkspace() wm.Workspace {
 	return nil
 }
 
-func (i *i3wm) OnChangeWorkspace() <-chan wm.Workspace {
+func (i *I3wm) OnChangeWorkspace() <-chan wm.Workspace {
 	ch := make(chan wm.Workspace)
 
 	go func() {

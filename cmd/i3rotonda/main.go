@@ -3,28 +3,24 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/micronull/i3rotonda/internal/pkg/socket"
-	"log"
 	"os"
+
+	"github.com/micronull/i3rotonda/internal/pkg/socket"
+	"github.com/micronull/i3rotonda/internal/pkg/wm/i3wm"
 
 	"github.com/micronull/i3rotonda/internal/pkg/cli/serve"
 	"github.com/micronull/i3rotonda/internal/pkg/cli/switcher"
-	"github.com/micronull/i3rotonda/internal/pkg/wm/i3wm"
 )
 
-type runner interface {
+type command interface {
 	Init(args []string) error
 	Run() error
 	Name() string
 }
 
-var errInit = errors.New("run init error")
-
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		if !errors.Is(err, errInit) {
-			fmt.Println(err)
-		}
+		fmt.Println(err)
 
 		os.Exit(1)
 	}
@@ -39,24 +35,29 @@ func run(args []string) error {
 			"   switch - switch the current workspace")
 	}
 
-	lgr := log.New(os.Stdout, "", log.LstdFlags)
+	var cmd command
 
-	cmds := []runner{
-		serve.NewCommand(i3wm.New(lgr)),
-		switcher.NewCommand(socket.Connect),
-	}
-
-	subcommand := args[0]
-
-	for _, cmd := range cmds {
-		if cmd.Name() == subcommand {
-			if err := cmd.Init(args[1:]); err != nil {
-				return fmt.Errorf("%w: %s", errInit, err.Error())
-			}
-
-			return cmd.Run()
+	switch sc := args[0]; sc {
+	case "switch":
+		conn, err := socket.Connect()
+		if err != nil {
+			return fmt.Errorf("couldn't connect to socket: %w", err)
 		}
+
+		cmd = switcher.NewCommand(conn)
+	case "serve":
+		cmd = serve.NewCommand(&i3wm.I3wm{})
+	default:
+		return fmt.Errorf("unknown subcommand: %s", sc)
 	}
 
-	return fmt.Errorf("unknown subcommand: %s", subcommand)
+	if err := cmd.Init(args[1:]); err != nil {
+		return fmt.Errorf("couldn't initialize: %w", err)
+	}
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("couldn't run: %w", err)
+	}
+
+	return nil
 }

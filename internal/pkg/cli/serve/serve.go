@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/exp/slog"
+
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
@@ -50,7 +52,7 @@ func (c *Command) Init(args []string) error {
 }
 
 func (c *Command) Run() error {
-	log.Println("INFO: observer is running")
+	slog.Info("observer is running")
 
 	go c.runServer()
 	go c.runListenWorkspace()
