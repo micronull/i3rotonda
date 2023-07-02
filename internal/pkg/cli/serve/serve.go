@@ -105,6 +105,14 @@ func (c *Command) action(a types.Action) {
 		return
 	}
 
+	if isExclude(cws.GetName(), strings.Split(c.exclude, ",")) {
+		if cr := c.sw.Current(); cr != nil {
+			c.wm.Switch(cr.GetName())
+		}
+
+		return
+	}
+
 	var ws wm.Workspace
 
 	switch a {
