@@ -14,11 +14,13 @@ import (
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
 )
 
+const commandName = "serve"
+
 func NewCommand(wm wm.WorkspaceManager) *Command {
 	c := &Command{
 		wm: wm,
-		fs: flag.NewFlagSet("serve", flag.ContinueOnError),
-		m:  &sync.RWMutex{},
+		fs: flag.NewFlagSet(commandName, flag.ContinueOnError),
+		mx: &sync.RWMutex{},
 	}
 
 	c.fs.StringVar(&c.exclude, "e", "", "exclude workspaces from observation, names or numbers separated by commas")
@@ -36,11 +38,11 @@ type Command struct {
 
 	p [10]wm.Workspace
 
-	m *sync.RWMutex
+	mx *sync.RWMutex
 }
 
 func (c *Command) Name() string {
-	return c.fs.Name()
+	return commandName
 }
 
 func (c *Command) Init(args []string) error {
@@ -136,7 +138,7 @@ func (c *Command) runListenWorkspace() {
 			continue
 		}
 
-		c.m.Lock()
+		c.mx.Lock()
 
 		for i := cap(c.p) - 1; i > 0; i-- {
 			c.p[i] = c.p[i-1]
@@ -144,7 +146,7 @@ func (c *Command) runListenWorkspace() {
 
 		c.p[0] = ws
 
-		c.m.Unlock()
+		c.mx.Unlock()
 
 		log.Printf("DEBUG: added ws into poll %s", ws.GetName())
 	}

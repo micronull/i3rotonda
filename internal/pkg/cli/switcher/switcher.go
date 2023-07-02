@@ -12,6 +12,8 @@ import (
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 )
 
+const commandName = "switch"
+
 type connect interface {
 	io.Closer
 	io.Writer
@@ -27,7 +29,7 @@ type Command struct {
 func NewCommand(conn connect) *Command {
 	c := &Command{
 		conn: conn,
-		fs:   flag.NewFlagSet("switch", flag.ContinueOnError),
+		fs:   flag.NewFlagSet(commandName, flag.ContinueOnError),
 	}
 
 	c.fs.StringVar(&c.action, "a", "next", "switch direction, next or prev")
@@ -36,12 +38,8 @@ func NewCommand(conn connect) *Command {
 	return c
 }
 
-func (c *Command) Init(args []string) (err error) {
-	if err = c.fs.Parse(args); err != nil {
-		return err
-	}
-
-	return err
+func (c *Command) Init(args []string) error {
+	return c.fs.Parse(args)
 }
 
 var errWrongAction = errors.New("wrong action")
@@ -68,5 +66,5 @@ func (c *Command) Run() error {
 }
 
 func (c *Command) Name() string {
-	return c.fs.Name()
+	return commandName
 }
