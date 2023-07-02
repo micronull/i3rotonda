@@ -48,27 +48,7 @@ func TestSwitcher_Add_Current(t *testing.T) {
 	assert.Equal(t, "5", s.Current().GetName())
 }
 
-func TestSwitcher_Prev(t *testing.T) {
-	t.Parallel()
-
-	const size = 10
-
-	s := switcher.NewSwitcher(size)
-
-	s.Add(wm("1"))
-	s.Add(wm("2"))
-	s.Add(wm("3"))
-	s.Add(wm("4"))
-	s.Add(wm("5"))
-
-	assert.Equal(t, "4", s.Prev().GetName())
-	assert.Equal(t, "3", s.Prev().GetName())
-	assert.Equal(t, "2", s.Prev().GetName())
-	assert.Equal(t, "1", s.Prev().GetName())
-	assert.Equal(t, "5", s.Prev().GetName())
-}
-
-func TestSwitcher_Prev_SmallSize(t *testing.T) {
+func TestSwitcher_Add_SmallSize(t *testing.T) {
 	t.Parallel()
 
 	const size = 3
@@ -104,6 +84,50 @@ func TestSwitcher_Add_SkipIfCurrent(t *testing.T) {
 	assert.Equal(t, "3", s.Current().GetName())
 	assert.Equal(t, "2", s.Prev().GetName())
 	assert.Equal(t, "1", s.Prev().GetName())
+}
+
+func TestSwitcher_Add_SwitchToPrev(t *testing.T) {
+	t.Parallel()
+
+	const size = 10
+
+	s := switcher.NewSwitcher(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+
+	//get the previous.
+	p := s.Prev()
+
+	//switch
+	s.Add(p)
+
+	assert.Equal(t, "2", s.Current().GetName())
+	assert.Equal(t, "3", s.Prev().GetName())
+	assert.Equal(t, "2", s.Prev().GetName())
+	assert.Equal(t, "1", s.Prev().GetName())
+	assert.Equal(t, "2", s.Prev().GetName())
+}
+
+func TestSwitcher_Prev(t *testing.T) {
+	t.Parallel()
+
+	const size = 10
+
+	s := switcher.NewSwitcher(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+	s.Add(wm("4"))
+	s.Add(wm("5"))
+
+	assert.Equal(t, "4", s.Prev().GetName())
+	assert.Equal(t, "3", s.Prev().GetName())
+	assert.Equal(t, "2", s.Prev().GetName())
+	assert.Equal(t, "1", s.Prev().GetName())
+	assert.Equal(t, "5", s.Prev().GetName())
 }
 
 func TestSwitcher_Next(t *testing.T) {
