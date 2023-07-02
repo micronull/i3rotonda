@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"log"
 	"os"
 
@@ -35,14 +36,14 @@ func run(args []string) error {
 	if len(args) < 1 || args[0] == "-h" || args[0] == "--help" {
 		return errors.New("usage: <command> [<args>]\n" +
 			"   serve  - run observer for switcher by history\n" +
-		  "   switch - switch the current workspace")
+			"   switch - switch the current workspace")
 	}
 
 	lgr := log.New(os.Stdout, "", log.LstdFlags)
 
 	cmds := []runner{
 		serve.NewCommand(i3wm.New(lgr)),
-		switcher.NewCommand(),
+		switcher.NewCommand(socket.Connect),
 	}
 
 	subcommand := args[0]

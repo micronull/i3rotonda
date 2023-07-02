@@ -7,20 +7,24 @@ import (
 	"net"
 	"time"
 
-	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 )
 
 type Command struct {
+	connector connector
+
 	fs *flag.FlagSet
 	c  net.Conn
 	a  string
 	d  time.Duration
 }
 
-func NewCommand() *Command {
+type connector func() (net.Conn, error)
+
+func NewCommand(connector connector) *Command {
 	c := &Command{
-		fs: flag.NewFlagSet("switch", flag.ContinueOnError),
+		connector: connector,
+		fs:        flag.NewFlagSet("switch", flag.ContinueOnError),
 	}
 
 	c.fs.StringVar(&c.a, "a", "next", "switch direction, next or prev")
@@ -34,10 +38,12 @@ func (c *Command) Init(args []string) (err error) {
 		return err
 	}
 
-	c.c, err = socket.Connect()
+	c.c, err = c.connector()
 
-	return
+	return err
 }
+
+var errWrongAction = errors.New("wrong action")
 
 func (c *Command) Run() error {
 	defer func() {
@@ -54,7 +60,7 @@ func (c *Command) Run() error {
 	case "prev":
 		_, err = c.c.Write([]byte{byte(types.ACTION_PREV)})
 	default:
-		err = errors.New("wrong action")
+		err = errWrongAction
 	}
 
 	return err
