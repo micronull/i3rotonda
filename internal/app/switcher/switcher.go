@@ -67,3 +67,17 @@ func (s *Switcher) Prev() wm.Workspace {
 
 	return s.pool[s.counter]
 }
+
+func (s *Switcher) Next() wm.Workspace {
+	if len(s.pool) == 0 {
+		return nil
+	}
+
+	if s.counter+1 == len(s.pool) {
+		s.counter = 0
+	} else {
+		s.counter++
+	}
+
+	return s.pool[s.counter]
+}

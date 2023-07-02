@@ -99,7 +99,30 @@ func TestSwitcher_Add_SkipIfCurrent(t *testing.T) {
 	s.Add(wm("2"))
 	s.Add(wm("2"))
 	s.Add(wm("2"))
+	s.Add(wm("3"))
 
-	assert.Equal(t, "2", s.Current().GetName())
+	assert.Equal(t, "3", s.Current().GetName())
+	assert.Equal(t, "2", s.Prev().GetName())
 	assert.Equal(t, "1", s.Prev().GetName())
+}
+
+func TestSwitcher_Next(t *testing.T) {
+	t.Parallel()
+
+	const size = 10
+
+	s := switcher.NewSwitcher(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+	s.Add(wm("4"))
+	s.Add(wm("5"))
+
+	assert.Equal(t, "1", s.Next().GetName())
+	assert.Equal(t, "2", s.Next().GetName())
+	assert.Equal(t, "3", s.Next().GetName())
+	assert.Equal(t, "4", s.Next().GetName())
+	assert.Equal(t, "5", s.Next().GetName())
+	assert.Equal(t, "1", s.Next().GetName())
 }
