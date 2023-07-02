@@ -1,8 +1,9 @@
 build:
+	go test ./...
 	go build ./cmd/i3rotonda/
 
 install: build
-	mv -f ./i3rotonda ~/go/bin/
+	mv -f ./i3rotonda ~/.local/bin/
 
 uninstall:
-	rm ~/go/bin/i3rotonda
+	rm ~/.local/bin/i3rotonda
