@@ -99,18 +99,22 @@ func (c *Command) action(a types.Action) {
 		return
 	}
 
-	ws := c.wm.GetCurrentWorkspace()
+	cws := c.wm.GetCurrentWorkspace()
 
-	if ws == nil || ws.GetName() == "" {
+	if cws == nil || cws.GetName() == "" {
 		return
 	}
 
+	var ws wm.Workspace
+
 	switch a {
 	case types.ActionNext:
-		c.sw.Next()
+		ws = c.sw.Next()
 	case types.ActionPrev:
-		c.sw.Prev()
+		ws = c.sw.Prev()
 	}
+
+	c.wm.Switch(ws.GetName())
 }
 
 func (c *Command) runListenWorkspace() {

@@ -1,7 +1,9 @@
 // Package switcher contains switching logic.
 package switcher
 
-import "github.com/micronull/i3rotonda/internal/pkg/wm"
+import (
+	"github.com/micronull/i3rotonda/internal/pkg/wm"
+)
 
 type Switcher struct {
 	pool    []wm.Workspace
