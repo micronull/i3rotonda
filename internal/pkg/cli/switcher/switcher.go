@@ -1,34 +1,37 @@
 package switcher
 
+//go:generate mockgen -source ./$GOFILE -destination ./mocks/$GOFILE -package mocks
+
 import (
 	"errors"
 	"flag"
+	"io"
 	"log"
-	"net"
 	"time"
 
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 )
 
-type Command struct {
-	connector connector
-
-	fs *flag.FlagSet
-	c  net.Conn
-	a  string
-	d  time.Duration
+type connect interface {
+	io.Closer
+	io.Writer
 }
 
-type connector func() (net.Conn, error)
+type Command struct {
+	fs     *flag.FlagSet
+	conn   connect
+	action string
+	delay  time.Duration
+}
 
-func NewCommand(connector connector) *Command {
+func NewCommand(conn connect) *Command {
 	c := &Command{
-		connector: connector,
-		fs:        flag.NewFlagSet("switch", flag.ContinueOnError),
+		conn: conn,
+		fs:   flag.NewFlagSet("switch", flag.ContinueOnError),
 	}
 
-	c.fs.StringVar(&c.a, "a", "next", "switch direction, next or prev")
-	c.fs.DurationVar(&c.d, "d", time.Millisecond*500, "time after which a switch can be considered to have completed")
+	c.fs.StringVar(&c.action, "a", "next", "switch direction, next or prev")
+	c.fs.DurationVar(&c.delay, "d", time.Millisecond*500, "time after which a switch can be considered to have completed")
 
 	return c
 }
@@ -38,8 +41,6 @@ func (c *Command) Init(args []string) (err error) {
 		return err
 	}
 
-	c.c, err = c.connector()
-
 	return err
 }
 
@@ -47,18 +48,18 @@ var errWrongAction = errors.New("wrong action")
 
 func (c *Command) Run() error {
 	defer func() {
-		if err := c.c.Close(); err != nil {
+		if err := c.conn.Close(); err != nil {
 			log.Println("WARNING: couldn't close socket connected")
 		}
 	}()
 
 	var err error
 
-	switch c.a {
+	switch c.action {
 	case "next":
-		_, err = c.c.Write([]byte{types.ActionNext})
+		_, err = c.conn.Write([]byte{types.ActionNext})
 	case "prev":
-		_, err = c.c.Write([]byte{types.ActionPrev})
+		_, err = c.conn.Write([]byte{types.ActionPrev})
 	default:
 		err = errWrongAction
 	}
