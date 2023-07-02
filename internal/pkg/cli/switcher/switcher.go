@@ -56,9 +56,9 @@ func (c *Command) Run() error {
 
 	switch c.a {
 	case "next":
-		_, err = c.c.Write([]byte{byte(types.ACTION_NEXT)})
+		_, err = c.c.Write([]byte{types.ActionNext})
 	case "prev":
-		_, err = c.c.Write([]byte{byte(types.ACTION_PREV)})
+		_, err = c.c.Write([]byte{types.ActionPrev})
 	default:
 		err = errWrongAction
 	}

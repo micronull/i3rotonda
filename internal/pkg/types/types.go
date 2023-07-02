@@ -1,9 +1,9 @@
 package types
 
-type Action byte
+type Action = byte
 
 const (
-	ACTION_NONE Action = iota
-	ACTION_NEXT
-	ACTION_PREV
+	ActionNone Action = iota
+	ActionNext
+	ActionPrev
 )

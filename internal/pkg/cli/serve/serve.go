@@ -86,7 +86,7 @@ func (c *Command) runServer() {
 }
 
 func (c *Command) action(a types.Action) {
-	if a == types.ACTION_NONE {
+	if a == types.ActionNone {
 		return
 	}
 
@@ -102,7 +102,7 @@ func (c *Command) action(a types.Action) {
 		return
 	}
 
-	if a == types.ACTION_NEXT {
+	if a == types.ActionNext {
 		if c.p[0] == nil {
 			return
 		}
