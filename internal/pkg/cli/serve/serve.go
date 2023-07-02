@@ -1,12 +1,11 @@
 package serve
 
 import (
+	"errors"
 	"flag"
 	"io"
-	"log"
 	"net"
 	"strings"
-	"sync"
 	"time"
 
 	"golang.org/x/exp/slog"
@@ -18,29 +17,33 @@ import (
 
 const commandName = "serve"
 
-func NewCommand(wm wm.WorkspaceManager) *Command {
+type switcher interface {
+	Add(ws wm.Workspace)
+	Current() wm.Workspace
+	Prev() wm.Workspace
+	Next() wm.Workspace
+}
+
+type Command struct {
+	sw switcher
+	wm wm.WorkspaceManager
+	fs *flag.FlagSet
+
+	exclude string
+	d       time.Duration
+}
+
+func NewCommand(wm wm.WorkspaceManager, sw switcher) *Command {
 	c := &Command{
 		wm: wm,
+		sw: sw,
 		fs: flag.NewFlagSet(commandName, flag.ContinueOnError),
-		mx: &sync.RWMutex{},
 	}
 
 	c.fs.StringVar(&c.exclude, "e", "", "exclude workspaces from observation, names or numbers separated by commas")
 	c.fs.DurationVar(&c.d, "d", time.Second, "time after which a switch can be considered to have completed")
 
 	return c
-}
-
-type Command struct {
-	wm wm.WorkspaceManager
-	fs *flag.FlagSet
-
-	exclude string
-	d       time.Duration
-
-	p [10]wm.Workspace
-
-	mx *sync.RWMutex
 }
 
 func (c *Command) Name() string {
@@ -66,27 +69,29 @@ func (c *Command) Run() error {
 }
 
 func (c *Command) runServer() {
-	addr := socket.Run(func(conn net.Conn) {
+	addr := socket.Run(func(read net.Conn) {
 		d := make([]byte, 1)
 
 		for {
-			_, err := conn.Read(d)
+			_, err := read.Read(d)
 
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 
 			if err != nil {
-				log.Fatal("ERROR: read socket: " + err.Error())
+				slog.Error("read error", "error", err.Error())
+
+				break
 			}
 		}
 
-		_ = conn.Close()
+		_ = read.Close()
 
-		c.action(types.Action(d[0]))
+		c.action(d[0])
 	})
 
-	log.Printf("INFO: listing: %s\n", addr)
+	slog.Info("listing", "addr", addr)
 }
 
 func (c *Command) action(a types.Action) {
@@ -100,35 +105,11 @@ func (c *Command) action(a types.Action) {
 		return
 	}
 
-	if isExclude(ws.GetName(), strings.Split(c.exclude, ",")) {
-		c.wm.Switch(c.p[0].GetName())
-
-		return
-	}
-
-	if a == types.ActionNext {
-		if c.p[0] == nil {
-			return
-		}
-
-		var first wm.Workspace
-		for i := 0; i < len(c.p); i++ {
-			if i == 0 {
-				first = c.p[i]
-			}
-
-			if i+1 < len(c.p) {
-				c.p[i] = c.p[i+1]
-			}
-
-			if len(c.p) == i+1 || c.p[i] == nil {
-				c.p[i] = first
-
-				break
-			}
-		}
-
-		c.wm.Switch(c.p[0].GetName())
+	switch a {
+	case types.ActionNext:
+		c.sw.Next()
+	case types.ActionPrev:
+		c.sw.Prev()
 	}
 }
 
@@ -136,21 +117,11 @@ func (c *Command) runListenWorkspace() {
 	e := strings.Split(c.exclude, ",")
 
 	for ws := range c.wm.OnChangeWorkspace() {
-		if isExclude(ws.GetName(), e) || c.p[0] != nil && c.p[0].GetName() == ws.GetName() {
+		if isExclude(ws.GetName(), e) {
 			continue
 		}
 
-		c.mx.Lock()
-
-		for i := cap(c.p) - 1; i > 0; i-- {
-			c.p[i] = c.p[i-1]
-		}
-
-		c.p[0] = ws
-
-		c.mx.Unlock()
-
-		log.Printf("DEBUG: added ws into poll %s", ws.GetName())
+		c.sw.Add(ws)
 	}
 }
 
