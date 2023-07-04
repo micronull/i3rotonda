@@ -6,6 +6,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/stretchr/testify v1.9.0
 	go.i3wm.org/i3/v4 v4.21.0
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
 
 require (

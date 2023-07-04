@@ -18,4 +18,4 @@
 
 ### Added
 
-- Realisation of basic functionality
+- Realisation of basic functionality.
