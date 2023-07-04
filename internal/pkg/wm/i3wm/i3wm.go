@@ -2,7 +2,6 @@ package i3wm
 
 import (
 	"fmt"
-	"log"
 
 	"go.i3wm.org/i3/v4"
 	"golang.org/x/exp/slog"
@@ -11,7 +10,13 @@ import (
 )
 
 type I3wm struct {
-	lg *log.Logger
+	wsts map[string]bool
+}
+
+func NewI3wm() *I3wm {
+	return &I3wm{
+		wsts: make(map[string]bool, 5),
+	}
 }
 
 var _ wm.WorkspaceManager = &I3wm{}
@@ -28,20 +33,12 @@ func (i *I3wm) Switch(target string) {
 	}
 }
 
-type ws struct {
-	name string
-}
-
-func (w *ws) GetName() string {
-	return w.name
-}
-
 func (i *I3wm) GetCurrentWorkspace() wm.Workspace {
 	wss, _ := i3.GetWorkspaces()
 
 	for _, w := range wss {
 		if w.Focused {
-			return &ws{w.Name}
+			return &ws{w.Name, i}
 		}
 	}
 
@@ -55,15 +52,45 @@ func (i *I3wm) OnChangeWorkspace() <-chan wm.Workspace {
 		recv := i3.Subscribe(i3.WorkspaceEventType)
 
 		for recv.Next() {
-			ev := recv.Event().(*i3.WorkspaceEvent)
+			ev, ok := recv.Event().(*i3.WorkspaceEvent)
+			if !ok {
+				continue
+			}
+
+			name := ev.Current.Name
+
+			if ev.Change == "empty" {
+				i.wsts[name] = false
+			}
 
 			if ev.Change != "focus" {
 				continue
 			}
 
-			ch <- &ws{ev.Current.Name}
+			i.wsts[name] = true
+
+			ch <- &ws{name, i}
 		}
 	}()
 
 	return ch
+}
+
+func (i *I3wm) isEmptyWorkspace(ws wm.Workspace) bool {
+	return i.wsts[ws.GetName()]
+}
+
+type ws struct {
+	name string
+	wm   *I3wm
+}
+
+var _ wm.Workspace = &ws{}
+
+func (w *ws) GetName() string {
+	return w.name
+}
+
+func (w *ws) IsEmpty() bool {
+	return !w.wm.isEmptyWorkspace(w)
 }

@@ -8,4 +8,5 @@ type WorkspaceManager interface {
 
 type Workspace interface {
 	GetName() string
+	IsEmpty() bool
 }
