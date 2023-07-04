@@ -65,13 +65,23 @@ func (s *Switcher) Prev() wm.Workspace {
 		return nil
 	}
 
-	if s.counter == 0 {
-		s.counter = len(s.pool) - 1
-	} else {
-		s.counter--
+	for c := len(s.pool); c > 0; c-- {
+		if s.counter == 0 {
+			s.counter = len(s.pool) - 1
+		} else {
+			s.counter--
+		}
+
+		ws := s.pool[s.counter]
+
+		if ws.IsEmpty() {
+			continue
+		}
+
+		return ws
 	}
 
-	return s.pool[s.counter]
+	return nil
 }
 
 func (s *Switcher) Next() wm.Workspace {
@@ -79,11 +89,21 @@ func (s *Switcher) Next() wm.Workspace {
 		return nil
 	}
 
-	if s.counter+1 == len(s.pool) {
-		s.counter = 0
-	} else {
-		s.counter++
+	for c := len(s.pool); c > 0; c-- {
+		if s.counter == len(s.pool)-1 {
+			s.counter = 0
+		} else {
+			s.counter++
+		}
+
+		ws := s.pool[s.counter]
+
+		if ws.IsEmpty() {
+			continue
+		}
+
+		return ws
 	}
 
-	return s.pool[s.counter]
+	return nil
 }

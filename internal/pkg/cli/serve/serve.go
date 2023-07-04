@@ -122,7 +122,9 @@ func (c *Command) action(a types.Action) {
 		ws = c.sw.Prev()
 	}
 
-	c.wm.Switch(ws.GetName())
+	if ws != nil {
+		c.wm.Switch(ws.GetName())
+	}
 }
 
 func (c *Command) runListenWorkspace() {
