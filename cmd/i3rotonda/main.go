@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	logic "github.com/micronull/i3rotonda/internal/app/switcher"
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
@@ -40,6 +41,8 @@ func run(args []string) error {
 
 	switch sc := args[0]; sc {
 	case "switch":
+		debug.SetGCPercent(-1) // disable GC.
+
 		conn, err := socket.Connect()
 		if err != nil {
 			return fmt.Errorf("couldn't connect to socket: %w", err)
