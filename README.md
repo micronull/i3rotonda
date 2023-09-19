@@ -1,5 +1,7 @@
 # i3wm workspace switcher
 
+![coverage](https://raw.githubusercontent.com/micronull/i3rotonda/badges/.badges/main/coverage.svg)
+
 ## how to use
 
 1. `make install`
