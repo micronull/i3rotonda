@@ -2,9 +2,9 @@ package i3wm
 
 import (
 	"fmt"
+	"log/slog"
 
 	"go.i3wm.org/i3/v4"
-	"golang.org/x/exp/slog"
 
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
 )

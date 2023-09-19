@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2
+
+### Fixed
+
+- Finds duplicates in tsunts, making it appear that no switching has occurred.
+
 ## v0.1.1
 
 ### Fixed

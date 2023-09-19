@@ -227,3 +227,20 @@ func TestSwitcher_Next_WithEmptyWorkspace(t *testing.T) {
 	assert.Equal(t, "5", s.Next().GetName())
 	assert.Equal(t, "1", s.Next().GetName())
 }
+
+func TestSwitcher_Next_Doubles(t *testing.T) {
+	t.Parallel()
+
+	const size = 10
+
+	s := switcher.NewSwitcher(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("1"))
+
+	assert.Equal(t, "2", s.Next().GetName())
+	assert.Equal(t, "1", s.Next().GetName())
+	assert.Equal(t, "2", s.Next().GetName())
+	assert.Equal(t, "1", s.Next().GetName())
+}

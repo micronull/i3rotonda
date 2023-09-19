@@ -1,12 +1,11 @@
 module github.com/micronull/i3rotonda
 
-go 1.20
+go 1.21
 
 require (
 	github.com/golang/mock v1.6.0
 	github.com/stretchr/testify v1.8.0
 	go.i3wm.org/i3/v4 v4.18.0
-	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 )
 
 require (
