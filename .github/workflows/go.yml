@@ -25,8 +25,11 @@ jobs:
       run: go build -v ./...
 
     - name: Test
-      run: go test -v ./...        
+      run: go test -v ./... -coverprofile=./cover.out   
     
     - name: go-test-coverage
-      uses: vladopajic/go-test-coverage@v2.7.1
+      uses: vladopajic/go-test-coverage@v2.7.1      
+      with:
+        profile: cover.out
+        local-prefix: github.com/micronull/i3rotonda
             
