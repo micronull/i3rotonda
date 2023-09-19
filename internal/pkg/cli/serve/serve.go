@@ -4,11 +4,10 @@ import (
 	"errors"
 	"flag"
 	"io"
+	"log/slog"
 	"net"
 	"strings"
 	"time"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"

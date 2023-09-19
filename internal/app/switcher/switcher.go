@@ -89,18 +89,26 @@ func (s *Switcher) Next() wm.Workspace {
 		return nil
 	}
 
+	ct := s.counter
+
 	for c := len(s.pool); c > 0; c-- {
-		if s.counter == len(s.pool)-1 {
-			s.counter = 0
+		if ct == len(s.pool)-1 {
+			ct = 0
 		} else {
-			s.counter++
+			ct++
 		}
 
-		ws := s.pool[s.counter]
+		ws := s.pool[ct]
 
 		if ws.IsEmpty() {
 			continue
 		}
+
+		if s.isCurrent(ws) {
+			continue
+		}
+
+		s.counter = ct
 
 		return ws
 	}
