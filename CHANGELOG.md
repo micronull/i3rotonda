@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Finds duplicates in tsunts, making it appear that no switching has occurred.
+- Finds duplicates in the ends, giving the impression that no switching has occurred.
 
 ## v0.1.1
 
