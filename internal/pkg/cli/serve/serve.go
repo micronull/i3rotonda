@@ -56,7 +56,7 @@ func (c *Command) Init(args []string) error {
 func (c *Command) Run() error {
 	slog.Info("observer is running")
 
-	go c.runServer()
+	go c.runSocketServer()
 	go c.runListenWorkspace()
 
 	ch := make(chan struct{})
@@ -67,7 +67,7 @@ func (c *Command) Run() error {
 	return nil
 }
 
-func (c *Command) runServer() {
+func (c *Command) runSocketServer() {
 	addr := socket.Run(func(read net.Conn) {
 		d := make([]byte, 1)
 
