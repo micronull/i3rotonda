@@ -6,8 +6,7 @@ import (
 	"errors"
 	"flag"
 	"io"
-	"log"
-	"time"
+	"log/slog"
 
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 )
@@ -18,7 +17,6 @@ type Command struct {
 	fs     *flag.FlagSet
 	writer io.WriteCloser
 	action string
-	delay  time.Duration
 }
 
 func NewCommand(wr io.WriteCloser) *Command {
@@ -28,7 +26,6 @@ func NewCommand(wr io.WriteCloser) *Command {
 	}
 
 	c.fs.StringVar(&c.action, "a", "next", "switch direction, next or prev")
-	c.fs.DurationVar(&c.delay, "d", time.Millisecond*500, "time after which a switch can be considered to have completed")
 
 	return c
 }
@@ -42,7 +39,7 @@ var errWrongAction = errors.New("wrong action")
 func (c *Command) Run() error {
 	defer func() {
 		if err := c.writer.Close(); err != nil {
-			log.Println("WARNING: couldn't close socket connected")
+			slog.Warn("couldn't close socket connected", "error", err.Error())
 		}
 	}()
 
