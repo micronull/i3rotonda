@@ -100,13 +100,13 @@ func (c *Command) action(a types.Action) {
 
 	cws := c.wm.GetCurrentWorkspace()
 
-	if cws == nil || cws.GetName() == "" {
+	if cws == nil || cws.Name() == "" {
 		return
 	}
 
-	if isExclude(cws.GetName(), strings.Split(c.exclude, ",")) {
+	if isExclude(cws.Name(), strings.Split(c.exclude, ",")) {
 		if cr := c.sw.Current(); cr != nil {
-			c.wm.Switch(cr.GetName())
+			c.wm.Switch(cr.Name())
 		}
 
 		return
@@ -122,7 +122,7 @@ func (c *Command) action(a types.Action) {
 	}
 
 	if ws != nil {
-		c.wm.Switch(ws.GetName())
+		c.wm.Switch(ws.Name())
 	}
 }
 
@@ -130,7 +130,7 @@ func (c *Command) runListenWorkspace() {
 	e := strings.Split(c.exclude, ",")
 
 	for ws := range c.wm.OnChangeWorkspace() {
-		if isExclude(ws.GetName(), e) {
+		if isExclude(ws.Name(), e) {
 			continue
 		}
 

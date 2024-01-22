@@ -50,7 +50,7 @@ func run(args []string) error {
 
 		cmd = switcher.NewCommand(conn)
 	case "serve":
-		cmd = serve.NewCommand(i3wm.NewI3wm(), logic.NewSwitcher(32))
+		cmd = serve.NewCommand(i3wm.New(), logic.New(32))
 	default:
 		return fmt.Errorf("unknown subcommand: %s", sc)
 	}

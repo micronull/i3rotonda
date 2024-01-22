@@ -10,7 +10,7 @@ type Switcher struct {
 	counter int
 }
 
-func NewSwitcher(poolSize int) *Switcher {
+func New(poolSize int) *Switcher {
 	return &Switcher{
 		pool: make([]wm.Workspace, 0, poolSize),
 	}
@@ -21,7 +21,7 @@ func (s *Switcher) Add(w wm.Workspace) {
 		return
 	}
 
-	if len(s.pool) >= s.counter+1 && s.pool[s.counter].GetName() == w.GetName() {
+	if len(s.pool) >= s.counter+1 && s.pool[s.counter].Name() == w.Name() {
 		return
 	}
 
@@ -49,7 +49,7 @@ func (s *Switcher) isCurrent(w wm.Workspace) bool {
 		return false
 	}
 
-	return w.GetName() == c.GetName()
+	return w.Name() == c.Name()
 }
 
 func (s *Switcher) Current() wm.Workspace {

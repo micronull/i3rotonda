@@ -13,7 +13,7 @@ type I3wm struct {
 	wsts map[string]bool
 }
 
-func NewI3wm() *I3wm {
+func New() *I3wm {
 	return &I3wm{
 		wsts: make(map[string]bool, 5),
 	}
@@ -77,7 +77,7 @@ func (i *I3wm) OnChangeWorkspace() <-chan wm.Workspace {
 }
 
 func (i *I3wm) isEmptyWorkspace(ws wm.Workspace) bool {
-	return i.wsts[ws.GetName()]
+	return i.wsts[ws.Name()]
 }
 
 type ws struct {
@@ -87,7 +87,7 @@ type ws struct {
 
 var _ wm.Workspace = &ws{}
 
-func (w *ws) GetName() string {
+func (w *ws) Name() string {
 	return w.name
 }
 
