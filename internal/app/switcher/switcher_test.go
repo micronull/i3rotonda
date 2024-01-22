@@ -267,3 +267,43 @@ func TestSwitcher_Next_Doubles(t *testing.T) {
 	assert.Equal(t, "2", s.Next().Name())
 	assert.Equal(t, "1", s.Next().Name())
 }
+
+func TestSwitcher_Prev_FrontEnd(t *testing.T) {
+	t.Parallel()
+
+	const size = 4
+
+	s := switcher.New(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+	s.Add(wm("1"))
+
+	assert.Equal(t, "3", s.Prev().Name())
+	assert.Equal(t, "2", s.Prev().Name())
+	assert.Equal(t, "1", s.Prev().Name())
+	assert.Equal(t, "2", s.Next().Name())
+	assert.Equal(t, "1", s.Prev().Name())
+	assert.Equal(t, "3", s.Prev().Name())
+	assert.Equal(t, "2", s.Prev().Name())
+	assert.Equal(t, "1", s.Prev().Name())
+}
+
+func TestSwitcher_Next_FrontEnd(t *testing.T) {
+	t.Parallel()
+
+	const size = 4
+
+	s := switcher.New(size)
+
+	s.Add(wm("1"))
+	s.Add(wm("2"))
+	s.Add(wm("3"))
+	s.Add(wm("1"))
+
+	assert.Equal(t, "2", s.Next().Name())
+	assert.Equal(t, "3", s.Next().Name())
+	assert.Equal(t, "1", s.Next().Name())
+	assert.Equal(t, "2", s.Next().Name())
+}
