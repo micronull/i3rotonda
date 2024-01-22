@@ -2,18 +2,27 @@
 package switcher
 
 import (
+	"time"
+
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
 )
 
 type Switcher struct {
 	pool    []wm.Workspace
 	counter int
+	delay   time.Duration
 }
 
-func New(poolSize int) *Switcher {
-	return &Switcher{
+func New(poolSize int, opts ...Option) *Switcher {
+	s := &Switcher{
 		pool: make([]wm.Workspace, 0, poolSize),
 	}
+
+	for _, o := range opts {
+		o(s)
+	}
+
+	return s
 }
 
 func (s *Switcher) Add(w wm.Workspace) {
