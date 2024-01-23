@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"runtime/debug"
+	"time"
 
-	logic "github.com/micronull/i3rotonda/internal/app/switcher"
+	logic "github.com/micronull/i3rotonda/internal/app/delayed"
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/wm/i3wm"
 
@@ -50,7 +51,7 @@ func run(args []string) error {
 
 		cmd = switcher.NewCommand(conn)
 	case "serve":
-		cmd = serve.NewCommand(i3wm.New(), logic.New(32))
+		cmd = serve.NewCommand(i3wm.New(), logic.New(32, time.Second))
 	default:
 		return fmt.Errorf("unknown subcommand: %s", sc)
 	}
