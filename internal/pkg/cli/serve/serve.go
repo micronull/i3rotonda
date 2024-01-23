@@ -6,8 +6,8 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"os"
 	"strings"
-	"time"
 
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"
@@ -29,7 +29,7 @@ type Command struct {
 	fs *flag.FlagSet
 
 	exclude string
-	d       time.Duration
+	debug   bool
 }
 
 func NewCommand(wm wm.WorkspaceManager, sw switcher) *Command {
@@ -40,7 +40,7 @@ func NewCommand(wm wm.WorkspaceManager, sw switcher) *Command {
 	}
 
 	c.fs.StringVar(&c.exclude, "e", "", "exclude workspaces from observation, names or numbers separated by commas")
-	c.fs.DurationVar(&c.d, "d", time.Second, "time after which a switch can be considered to have completed")
+	c.fs.BoolVar(&c.debug, "debug", false, "enable debug messages")
 
 	return c
 }
@@ -55,6 +55,13 @@ func (c *Command) Init(args []string) error {
 
 func (c *Command) Run() error {
 	slog.Info("observer is running")
+
+	if c.debug {
+		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		}))
+		slog.SetDefault(logger)
+	}
 
 	go c.runSocketServer()
 	go c.runListenWorkspace()

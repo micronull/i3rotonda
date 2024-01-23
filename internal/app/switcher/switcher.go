@@ -2,6 +2,8 @@
 package switcher
 
 import (
+	"log/slog"
+
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
 )
 
@@ -26,6 +28,8 @@ func (s *Switcher) Add(w wm.Workspace) {
 	if len(s.pool) >= s.counter+1 && s.pool[s.counter].Name() == w.Name() {
 		return
 	}
+
+	slog.Debug("added", "name", w.Name())
 
 	if len(s.pool) == cap(s.pool) {
 		for i := 0; i < len(s.pool); i++ {
