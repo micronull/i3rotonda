@@ -21,11 +21,9 @@ func New(poolSize int) *Switcher {
 }
 
 func (s *Switcher) Add(w wm.Workspace) {
-	if s.isCurrent(w) {
-		return
-	}
+	if s.isEqualLast(w) {
+		slog.Debug("is equal last. Skip.", "name", w.Name())
 
-	if len(s.pool) >= s.counter+1 && s.pool[s.counter].Name() == w.Name() {
 		return
 	}
 
@@ -46,6 +44,14 @@ func (s *Switcher) Add(w wm.Workspace) {
 	}
 
 	s.counter = len(s.pool) - 1
+}
+
+func (s *Switcher) isEqualLast(w wm.Workspace) bool {
+	if len(s.pool) == 0 {
+		return false
+	}
+
+	return s.pool[len(s.pool)-1].Name() == w.Name()
 }
 
 func (s *Switcher) isCurrent(w wm.Workspace) bool {
