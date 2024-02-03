@@ -54,14 +54,14 @@ func (c *Command) Init(args []string) error {
 }
 
 func (c *Command) Run() error {
-	slog.Info("observer is running")
-
 	if c.debug {
 		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 			Level: slog.LevelDebug,
 		}))
 		slog.SetDefault(logger)
 	}
+
+	slog.Debug("observer is running")
 
 	go c.runSocketServer()
 	go c.runListenWorkspace()

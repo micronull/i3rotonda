@@ -2,6 +2,7 @@ package delayed
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -50,6 +51,8 @@ func (s *Switcher) Add(ws wm.Workspace) {
 		case <-t.C:
 			s.mx.Lock()
 			defer s.mx.Unlock()
+
+			slog.Debug("delay ended", "name", ws.Name())
 
 			s.sw.Add(ws)
 		}
