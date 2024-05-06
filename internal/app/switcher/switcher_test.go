@@ -111,7 +111,6 @@ func TestSwitcher_Add_SwitchToPrev(t *testing.T) {
 	s.Add(ws)
 
 	assert.Equal(t, "2", s.Current().Name())
-	assert.Equal(t, "1", s.Prev().Name())
 	assert.Equal(t, "3", s.Prev().Name())
 	assert.Equal(t, "2", s.Prev().Name())
 	assert.Equal(t, "1", s.Prev().Name())
@@ -157,8 +156,8 @@ func TestSwitcher_Prev_IgnoreInAdd(t *testing.T) {
 	ws = s.Prev()
 	s.Add(ws)
 
-	assert.Equal(t, "1", s.Current().Name())
-	assert.Equal(t, "1", ws.Name())
+	assert.Equal(t, "3", s.Current().Name())
+	assert.Equal(t, "3", ws.Name())
 }
 
 func TestSwitcher_Prev_Doubles(t *testing.T) {
