@@ -2,13 +2,11 @@ package serve
 
 import (
 	"errors"
-	"flag"
 	"io"
 	"log/slog"
 	"net"
-	"os"
-	"strings"
 
+	"github.com/micronull/i3rotonda/internal/pkg/config"
 	"github.com/micronull/i3rotonda/internal/pkg/socket"
 	"github.com/micronull/i3rotonda/internal/pkg/types"
 	"github.com/micronull/i3rotonda/internal/pkg/wm"
@@ -24,23 +22,16 @@ type switcher interface {
 }
 
 type Command struct {
-	sw switcher
-	wm wm.WorkspaceManager
-	fs *flag.FlagSet
-
-	exclude string
-	debug   bool
+	sw  switcher
+	wm  wm.WorkspaceManager
+	cfg config.Config
 }
 
 func NewCommand(wm wm.WorkspaceManager, sw switcher) *Command {
 	c := &Command{
 		wm: wm,
 		sw: sw,
-		fs: flag.NewFlagSet(commandName, flag.ContinueOnError),
 	}
-
-	c.fs.StringVar(&c.exclude, "e", "", "exclude workspaces from observation, names or numbers separated by commas")
-	c.fs.BoolVar(&c.debug, "debug", false, "enable debug messages")
 
 	return c
 }
@@ -49,16 +40,15 @@ func (c *Command) Name() string {
 	return commandName
 }
 
-func (c *Command) Init(args []string) error {
-	return c.fs.Parse(args)
+func (c *Command) Init([]string) (err error) {
+	c.cfg, err = config.Load()
+
+	return err
 }
 
 func (c *Command) Run() error {
-	if c.debug {
-		logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		}))
-		slog.SetDefault(logger)
+	if c.cfg.Debug {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
 
 	slog.Debug("observer is running")
@@ -111,7 +101,7 @@ func (c *Command) action(a types.Action) {
 		return
 	}
 
-	if isExclude(cws.Name(), strings.Split(c.exclude, ",")) {
+	if isExclude(cws.Name(), c.cfg.Workspaces.Exclude) {
 		if cr := c.sw.Current(); cr != nil {
 			c.wm.Switch(cr.Name())
 		}
@@ -134,10 +124,8 @@ func (c *Command) action(a types.Action) {
 }
 
 func (c *Command) runListenWorkspace() {
-	e := strings.Split(c.exclude, ",")
-
 	for ws := range c.wm.OnChangeWorkspace() {
-		if isExclude(ws.Name(), e) {
+		if isExclude(ws.Name(), c.cfg.Workspaces.Exclude) {
 			continue
 		}
 

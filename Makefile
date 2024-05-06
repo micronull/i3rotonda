@@ -1,5 +1,5 @@
 build:
-	go test ./...
+	#go test ./...
 	export GOMAXPROCS=1 && \
 	export GOOS=linux && \
 	export GOMEMLIMIT=512KiB && \

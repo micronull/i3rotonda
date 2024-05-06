@@ -15,9 +15,17 @@ bindsym $mod+Shift+Tab exec "i3rotonda switch -a=next"
 exec --no-startup-id i3rotonda serve
 ```
 
-## Flags
+## Config
 
-### for `serve` subcommand
+Create config file into `/home/user/.config/i3rotonda/config.yml`.
 
-* `-e` exclude workspaces from observation, names or numbers separated by commas
-* `-d` **TODO** time after which a switch can be considered to have completed
+### Example
+
+```yaml
+debug: true
+workspaces:
+  exclude:
+    - 1
+    - 2
+    - 3
+```
