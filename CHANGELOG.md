@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0
+
+### Added
+
+- Delay 1s to memorize between switches.
+
 ## v0.1.2
 
 ### Fixed
